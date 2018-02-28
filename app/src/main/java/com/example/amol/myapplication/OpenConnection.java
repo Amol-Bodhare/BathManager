@@ -9,26 +9,31 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
-public class OpenConnection extends AsyncTask<String,Void,String> {
+public class OpenConnection extends AsyncTask<String,String,String> {
     public int x;
     public String result=null;
     private String line=null;
-    private String response=null;
+    static String response=null;
+    static Socket s1 = null;
+    static BufferedReader br = null;
+    static BufferedReader is = null;
+    static PrintWriter os = null;
     protected String doInBackground(String... params) {
 // this is where you implement your long-running task
         return connect();
     }
 
 
+
     public String connect() {
 
         //InetAddress address=InetAddress.getLocalHost();
 
-        Socket s1 = null;
-        BufferedReader br = null;
-        BufferedReader is = null;
-        PrintWriter os = null;
+
 
         try {
             s1 = new Socket("10.0.0.18", 4445); // You can use static final constant PORT_NUM
@@ -54,7 +59,13 @@ public class OpenConnection extends AsyncTask<String,Void,String> {
                     result= "The bathroom is vacant";
                 else
                     result= "The bathroom is engaged";
-                line=br.readLine();
+                //line=br.readLine();
+            ex();
+            //response=is.readLine();
+            //publishProgress(response);
+            Log.w("Second response is",response);
+            // return result;
+
 
 
 
@@ -69,5 +80,43 @@ public class OpenConnection extends AsyncTask<String,Void,String> {
         //Log.w("THE RESPONSE IS--------------------->",this.result);
         return result;
 
+    }
+    public void refresh(){
+        try{
+
+
+            os.println("refresh");
+            os.flush();
+            response=is.readLine();
+            publishProgress(response);
+//            if(Boolean.parseBoolean(response))
+//                System.out.println("The bathroom is vacant");
+//            else
+//                System.out.println("The bathroom is engaged");
+
+
+
+
+
+        }
+        catch(IOException e){
+            e.printStackTrace();
+            System.out.println("Socket read Error");
+        }
+    }
+    public void ex(){
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                // task to run goes here
+                refresh();
+            }
+        };
+        Timer timer = new Timer();
+        long delay = 0;
+        long intevalPeriod = 1 * 3000;
+        // schedules the task to be run in an interval
+        timer.scheduleAtFixedRate(task, delay,
+                intevalPeriod);
     }
 }
